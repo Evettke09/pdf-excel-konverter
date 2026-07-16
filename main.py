@@ -9,8 +9,11 @@ OUTPUT_FOLDER = "output"
 
 def main():
 
-    os.makedirs(INPUT_FOLDER, exist_ok=True)
-    os.makedirs(OUTPUT_FOLDER, exist_ok=True)
+    if not os.path.exists(INPUT_FOLDER):
+        os.makedirs(INPUT_FOLDER)
+
+    if not os.path.exists(OUTPUT_FOLDER):
+        os.makedirs(OUTPUT_FOLDER)
 
 
     pdf_files = [
@@ -27,18 +30,15 @@ def main():
     all_transactions = []
 
 
-    for pdf in pdf_files:
+    for pdf_file in pdf_files:
 
-        filepath = os.path.join(
-            INPUT_FOLDER,
-            pdf
-        )
+        path = os.path.join(INPUT_FOLDER, pdf_file)
 
-        print("Feldolgozás:", pdf)
+        print(f"Feldolgozás: {pdf_file}")
 
-        all_transactions.extend(
-            parse_pdf(filepath)
-        )
+        transactions = parse_pdf(path)
+
+        all_transactions.extend(transactions)
 
 
     save_excel(
@@ -48,6 +48,10 @@ def main():
             "Raiffeisen_kivonat.xlsx"
         )
     )
+
+
+    print("Kész! Az Excel elkészült.")
+
 
 
 if __name__ == "__main__":
