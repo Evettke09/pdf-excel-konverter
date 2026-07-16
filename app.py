@@ -1,11 +1,12 @@
+import streamlit as st
 import os
 from raiffeisen_parser import parse_pdf
 from excel_writer import save_excel
 
+st.title("Raiffeisen PDF → Excel konverter")
+st.write("Töltsd fel a bankszámla kivonat PDF fájlt.")
 
-INPUT_FOLDER = "input"
-OUTPUT_FOLDER = "output"
-
+uploaded_file = st.file_uploader("PDF feltöltése", type=["pdf"])
 
 def main():
 
