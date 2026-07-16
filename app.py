@@ -56,7 +56,7 @@ def main():
 
 if __name__ == "__main__":
     main()
-  import pdfplumber
+import pdfplumber
 import re
 from datetime import datetime
 
