@@ -19,9 +19,9 @@ def save_excel(data, filename):
         "Értéknap",
         "Tranzakció típusa",
         "Partner",
-        "Bankszámlaszám"
         "Közlemény",
         "Összeg",
+        "Egyenleg"
     ]
 
 
@@ -87,13 +87,18 @@ def save_excel(data, filename):
         )
 
 
-        # Összeg formázás
-    for row in ws.iter_rows(min_row=2):
+    # Összeg formázás
+    for row in ws.iter_rows(
+        min_row=2
+    ):
 
-        cell = row[5]   # 6. oszlop = Összeg
+        for index in [6,7]:
 
-        if isinstance(cell.value, (int, float)):
-            cell.number_format = '#,##0.00'
+            cell = row[index-1]
+
+            if isinstance(cell.value, (int,float)):
+
+                cell.number_format = '#,##0.00'
 
 
     wb.save(filename)
