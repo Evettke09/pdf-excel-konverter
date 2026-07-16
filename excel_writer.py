@@ -87,13 +87,13 @@ def save_excel(data, filename):
         )
 
 
-    # Összeg formázás
-for row in ws.iter_rows(min_row=2):
+        # Összeg formázás
+    for row in ws.iter_rows(min_row=2):
 
-    cell = row[6]  # 7. oszlop = Összeg
+        cell = row[5]   # 6. oszlop = Összeg
 
-    if isinstance(cell.value, (int, float)):
-        cell.number_format = '#,##0.00'
+        if isinstance(cell.value, (int, float)):
+            cell.number_format = '#,##0.00'
 
 
     wb.save(filename)
