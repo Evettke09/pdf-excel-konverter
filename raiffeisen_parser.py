@@ -2,6 +2,28 @@ import pdfplumber
 import re
 from datetime import datetime
 
+def clean_text(text):
+    if not text:
+        return ""
+
+    replacements = {
+        "©": "é",
+        "£": "á",
+        "½": "é",
+        "›": "í",
+        "ø": "ő",
+        "¶": "á",
+        "›": "í",
+        "ì": "ö",
+        "ë": "ó",
+        "›": "í",
+        "Ã": "Á"
+    }
+
+    for bad, good in replacements.items():
+        text = text.replace(bad, good)
+
+    return text
 
 def clean_amount(value):
     """
@@ -51,6 +73,8 @@ def parse_pdf(pdf_path):
         for page in pdf.pages:
 
             text = page.extract_text()
+
+            text = clean_text(text)
 
 
             if not text:
