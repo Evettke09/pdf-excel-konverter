@@ -19,9 +19,9 @@ def save_excel(data, filename):
         "Értéknap",
         "Tranzakció típusa",
         "Partner",
+        "Bankszámlaszám"
         "Közlemény",
         "Összeg",
-        "Egyenleg"
     ]
 
 
