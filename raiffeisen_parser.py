@@ -1,21 +1,18 @@
 import pdfplumber
 import re
-from datetime import datetime
 
 
 def clean_amount(value):
-    """
-    Magyar formátumú összeg átalakítása számmá.
-    Példa:
-    -20.000,00 -> -20000.00
-    """
 
     if not value:
         return None
 
-    value = value.replace(" ", "")
-    value = value.replace(".", "")
-    value = value.replace(",", ".")
+    value = (
+        value
+        .replace(".", "")
+        .replace(",", ".")
+        .replace(" ", "")
+    )
 
     try:
         return float(value)
@@ -25,18 +22,28 @@ def clean_amount(value):
 
 
 
-def is_date(text):
-    """
-    Dátum felismerése
-    Példa:
-    2025.02.01
-    """
-
-    pattern = r"^\d{4}\.\d{2}\.\d{2}"
+def is_date(line):
 
     return bool(
-        re.match(pattern, text)
+        re.match(
+            r"^\d{4}\.\d{2}\.\d{2}",
+            line
+        )
     )
+
+
+
+def find_account_number(text):
+
+    match = re.search(
+        r"\d{3,8}[- ]\d{3,8}[- ]\d{3,8}",
+        text
+    )
+
+    if match:
+        return match.group()
+
+    return ""
 
 
 
@@ -50,6 +57,7 @@ def parse_pdf(pdf_path):
 
         for page in pdf.pages:
 
+
             text = page.extract_text()
 
 
@@ -57,7 +65,11 @@ def parse_pdf(pdf_path):
                 continue
 
 
-            lines = text.split("\n")
+            lines = [
+                x.strip()
+                for x in text.split("\n")
+                if x.strip()
+            ]
 
 
             current = None
@@ -66,22 +78,11 @@ def parse_pdf(pdf_path):
             for line in lines:
 
 
-                line = line.strip()
-
-
-                if not line:
-                    continue
-
-
-
-                # Új tranzakció kezdete
                 if is_date(line):
 
 
-                    # előző mentése
                     if current:
                         transactions.append(current)
-
 
 
                     current = {
@@ -90,12 +91,11 @@ def parse_pdf(pdf_path):
                         "Értéknap": "",
                         "Tranzakció típusa": "",
                         "Partner": "",
+                        "Bankszámlaszám": "",
                         "Közlemény": "",
-                        "Összeg": None,
-                        "Egyenleg": None
+                        "Összeg": None
 
                     }
-
 
 
                     parts = line.split()
@@ -104,43 +104,11 @@ def parse_pdf(pdf_path):
                     current["Dátum"] = parts[0]
 
 
-                    # számok keresése a sorban
-                    numbers = []
+                    if len(parts) > 1:
+                        current["Értéknap"] = parts[1]
 
 
-                    for p in parts:
-
-                        if re.search(
-                            r"-?\d+\.\d+,\d{2}",
-                            p
-                        ):
-                            numbers.append(p)
-
-
-
-                    if numbers:
-
-                        current["Összeg"] = clean_amount(
-                            numbers[0]
-                        )
-
-
-                        if len(numbers) > 1:
-
-                            current["Egyenleg"] = clean_amount(
-                                numbers[-1]
-                            )
-
-
-
-                else:
-
-                    if current is None:
-                        continue
-
-
-
-                    # összeg folytatás felismerése
+                    # összeg keresés
                     amounts = re.findall(
                         r"-?\d+\.\d+,\d{2}",
                         line
@@ -150,29 +118,48 @@ def parse_pdf(pdf_path):
                     if amounts:
 
                         current["Összeg"] = clean_amount(
-                            amounts[0]
+                            amounts[-1]
                         )
 
 
+
+                elif current:
+
+
+                    # tranzakció típus
+                    if not current["Tranzakció típusa"]:
+
+                        current["Tranzakció típusa"] = line
+
+
+
+                    # bankszámlaszám
+                    account = find_account_number(line)
+
+                    if account:
+
+                        current["Bankszámlaszám"] = account
+
+
+
+                    # partner
+                    elif not current["Partner"]:
+
+                        current["Partner"] = line
+
+
+
+                    # közlemény
                     else:
 
-                        # első szövegsor partner
-                        if not current["Partner"]:
-
-                            current["Partner"] = line
-
-                        else:
-
-                            current["Közlemény"] += (
-                                " " + line
-                            )
+                        current["Közlemény"] += (
+                            " " + line
+                        )
 
 
 
             if current:
-
                 transactions.append(current)
-
 
 
     return transactions
